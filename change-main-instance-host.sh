@@ -26,7 +26,6 @@ sed -i "1i 127.0.0.1 jbnode_${SHORT_ID}.${MAIN_SRV_DOMAIN}" /etc/hosts
 echo -e "Updating Jibri Settings..."
 
 ## New Jibri Config (2020)
-mv "$JIBRI_CONF" "${JIBRI_CONF}"-dpkg-file
 cat << NEW_CONF > "$JIBRI_CONF"
 // New XMPP environment config.
 jibri {
