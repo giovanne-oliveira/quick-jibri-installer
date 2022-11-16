@@ -22,9 +22,9 @@ set -x
 fi
 
 #Make sure the file name is the required one
-if [ ! "$(basename "$0")" = "add-jibri-node.sh" ]; then
+if [ ! "$(basename "$0")" = "add-jibri-node-no-interaction.sh" ]; then
     echo "For most cases naming won't matter, for this one it does."
-    echo "Please use the original name for this script: \`add-jibri-node.sh', and run again."
+    echo "Please use the original name for this script: \`add-jibri-node-no-interaction.sh', and run again."
     exit
 fi
 
@@ -66,9 +66,9 @@ SHORT_ID="$(awk '{print substr($0,0,7)}' /etc/machine-id)"
 JIBRI_XORG_CONF="/etc/jitsi/jibri/xorg-video-dummy.conf"
 ### 1_VAR_DEF
 
-# sed limiters for add-jibri-node.sh variables
+# sed limiters for add-jibri-node-no-interaction.sh variables
 var_dlim() {
-    grep -n "$1" add-jibri-node.sh|head -n1|cut -d ":" -f1
+    grep -n "$1" add-jibri-node-no-interaction.sh|head -n1|cut -d ":" -f1
 }
 
 check_var() {
@@ -109,11 +109,11 @@ for i in "${JMS_DATA[@]}"; do
     fi
 done
 if [ "$ALL_TBD" = "no" ];then
- echo -e "Good, seems this is not a vanilla copy of add-jibri-node.sh,
+ echo -e "Good, seems this is not a vanilla copy of add-jibri-node-no-interaction.sh,
 let's check variables ...\n"
 else
- echo -e "You seem to be using a vanilla copy of the add-jibri-node.sh.
-  > Please use the content (or apply the changes) of add-jibri-node.sh from
+ echo -e "You seem to be using a vanilla copy of the add-jibri-node-no-interaction.sh.
+  > Please use the content (or apply the changes) of add-jibri-node-no-interaction.sh from
     the main Jitsi server installation folder, as it contains necessary data.\n"
         exit
 fi
@@ -171,16 +171,17 @@ else
     echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
     echo "Since this is a Jibri node installation there is no point on not having the necessary resources."
     echo "We highly advice to increase the resources in order to install this Jibri node."
-    while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
-    do
-    read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
-    if [ "$CONTINUE_LOW_RES" = "no" ]; then
-        echo "See you next time with more resources!..."
-        exit
-    elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
-        echo "Please keep in mind that we might not support underpowered nodes."
-    fi
-    done
+    # while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
+    # do
+    # read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
+    # if [ "$CONTINUE_LOW_RES" = "no" ]; then
+    #     echo "See you next time with more resources!..."
+    #     exit
+    # elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
+    #     echo "Please keep in mind that we might not support underpowered nodes."
+    # fi
+    # done
+    $CONTINUE_LOW_RES = "yes"; # Force yes
 fi
 
 # Rename hostname for each jibri node
@@ -204,7 +205,7 @@ fi
 # Requirements
 echo "We'll start by installing system requirements this may take a while please be patient..."
 apt-get update -q2
-apt-get dist-upgrade -yq2
+# apt-get dist-upgrade -yq2 # Not needed for prod servers and it consumes a good amount of time
 
 apt-get -y install \
                     apt-show-versions \
@@ -218,7 +219,8 @@ apt-get -y install \
                     rsync \
                     ssh \
                     unzip \
-                    wget
+                    wget \
+                    composer 
 
 check_snd_driver() {
 echo -e "\n# Checking ALSA - Loopback module..."
@@ -265,7 +267,7 @@ echo "
 "
 apt-get -y install \
                 jibri \
-                openjdk-8-jre-headless
+                openjdk-11-jre-headless # Change the JRE version to 11, to avoid issues with the new Jibri version
 
 echo "# Installing Google Chrome / ChromeDriver"
 if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
@@ -323,26 +325,25 @@ echo "The script was invoked with recordings directory $RECORDINGS_DIR." >> /tmp
 echo "You should put any finalize logic (renaming, uploading to a service" >> /tmp/finalize.out
 echo "or storage provider, etc.) in this script" >> /tmp/finalize.out
 
-chmod -R 770 \$RECORDINGS_DIR
+chmod -R 775 \$RECORDINGS_DIR
 
 #Rename folder.
 LJF_PATH="\$(find \$RECORDINGS_DIR -exec stat --printf="%Y\t%n\n" {} \; | sort -n -r|awk '{print\$2}'| grep -v "meta\|-" | head -n1)"
 NJF_NAME="\$(find \$LJF_PATH |grep -e "-"|sed "s|\$LJF_PATH/||"|cut -d "." -f1)"
 NJF_PATH="\$RECORDINGS_DIR/\$NJF_NAME"
 
-##Prevent empty recording directory failsafe
-if [ "\$LJF_PATH" != "\$RECORDINGS_DIR" ]; then
-  mv \$LJF_PATH \$NJF_PATH
-  #Workaround for jibri to do cleaning.
-  ssh -i /home/jibri/jbsync.pem $MJS_USER@$MAIN_SRV_DOMAIN "rm -r \$LJF_PATH"
-else
-  echo "No new folder recorded, not removing anything."
-fi
+php /home/jibri/uploader/upload.php $NJF_PATH
 
 exit 0
 REC_DIR
 chown jibri:jibri "$REC_DIR"
 chmod +x "$REC_DIR"
+
+# Clone the Jibri Uploader
+
+git clone https://github.com/giovanne-oliveira/jibri-s3-uploader.git /home/jibri/uploader
+composer install -d /home/jibri/uploader
+chmod -R 775 /home/jibri/uploader
 
 ## New Jibri Config (2020)
 mv "$JIBRI_CONF" "${JIBRI_CONF}"-dpkg-file
