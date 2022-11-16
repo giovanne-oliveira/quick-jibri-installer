@@ -220,7 +220,8 @@ apt-get -y install \
                     ssh \
                     unzip \
                     wget \
-                    composer 
+                    composer \
+                    php-curl
 
 check_snd_driver() {
 echo -e "\n# Checking ALSA - Loopback module..."
