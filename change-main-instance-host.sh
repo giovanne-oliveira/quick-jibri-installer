@@ -5,17 +5,17 @@ if ! [ "$(id -u)" = 0 ]; then
 fi
 
 
-MAIN_SRV_DIST="focal"
-MAIN_SRV_REPO="stable"
-MAIN_SRV_DOMAIN="meet.giovanne.dev"
-JibriBrewery="JibriBrewery"
-JB_NAME="Jibri Sessions"
-JB_AUTH_PASS="yPZXvJko#4"
-JB_REC_PASS="5BR=wloGNt"
-MJS_USER="jbsync_tII3"
-MJS_USER_PASS="mvl9GA3zv5O=#fsJFhQb553fH9I8HI5l"
-JIBRI_RES_CONF=""1280x720""
-JIBRI_RES_XORG_CONF="1280 720"
+MAIN_SRV_DIST=TBD
+MAIN_SRV_REPO=TBD
+MAIN_SRV_DOMAIN=TBD
+JibriBrewery=TBD
+JB_NAME=TBD
+JB_AUTH_PASS=TBD
+JB_REC_PASS=TBD
+MJS_USER=TBD
+MJS_USER_PASS=TBD
+JIBRI_RES_CONF=TBD
+JIBRI_RES_XORG_CONF=TBD
 
 echo -e "Updating Jibri Settings..."
 
