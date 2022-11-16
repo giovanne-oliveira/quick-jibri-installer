@@ -17,6 +17,8 @@ MJS_USER_PASS=TBD
 JIBRI_RES_CONF=TBD
 JIBRI_RES_XORG_CONF=TBD
 SHORT_ID=$(wget -q -O - "http://169.254.169.254/latest/meta-data/instance-id")
+NICKNAME=`uuidgen`
+
 
 echo -e "Updating hostname..."
 hostnamectl set-hostname "jbnode_${SHORT_ID}.${MAIN_SRV_DOMAIN}"
@@ -139,6 +141,11 @@ jibri {
 NEW_CONF
 
 echo -e "Jibri config file updated!"
+
+echo -e "Replacing Jibri Instance Nickname..."
+sudo sed -i "s/nickname = [^ ]*/nickname = \"$NICKNAME\"/g" /etc/jitsi/jibri/jibri.conf
+
+echo -e "Done!"
 echo -e "Restarting Jibri service..."
 
 systemctl restart jibri
