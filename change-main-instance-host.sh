@@ -16,6 +16,12 @@ MJS_USER=TBD
 MJS_USER_PASS=TBD
 JIBRI_RES_CONF=TBD
 JIBRI_RES_XORG_CONF=TBD
+SHORT_ID=$(wget -q -O - "http://169.254.169.254/latest/meta-data/instance-id")
+
+echo -e "Updating hostname..."
+hostnamectl set-hostname "jbnode_${SHORT_ID}.${MAIN_SRV_DOMAIN}"
+sed -i "1i 127.0.0.1 jbnode_${SHORT_ID}.${MAIN_SRV_DOMAIN}" /etc/hosts
+
 
 echo -e "Updating Jibri Settings..."
 
